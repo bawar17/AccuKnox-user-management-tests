@@ -1,0 +1,24 @@
+
+{
+  "name": "accuknox-user-management-tests",
+  "version": "1.0.0",
+  "description": "OrangeHRM User Management E2E tests for the AccuKnox QA Trainee Practical Assessment",
+  "scripts": {
+    "test": "playwright test tests/user-management.spec.ts --project=chromium",
+    "test:serial": "playwright test tests/user-management.spec.ts --project=chromium --workers=1",
+    "test:headed": "playwright test tests/user-management.spec.ts --project=chromium --headed",
+    "report": "playwright show-report"
+  },
+  "keywords": [
+    "playwright",
+    "qa",
+    "e2e",
+    "orangehrm"
+  ],
+  "author": "",
+  "license": "ISC",
+  "devDependencies": {
+    "@playwright/test": "^1.64.0",
+    "@types/node": "^26.6.4"
+  }
+}
