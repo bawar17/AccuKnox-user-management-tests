@@ -36,8 +36,7 @@ Manual test cases are documented in `test-cases/manual-test-cases.md`.
 Clone the repository and install dependencies:
 
 ```bash
-git clone <YOUR_GITHUB_REPOSITORY_URL>
-cd AccuKnox-user-management-tests
+git clone https://github.com/bawar17/AccuKnox-user-management-tests.git
 npm install
 npx playwright install chromium
 ```
