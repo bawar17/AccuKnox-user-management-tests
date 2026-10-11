@@ -1,4 +1,3 @@
-
 import { test, expect, type Page } from '@playwright/test';
 
 const BASE_URL =
@@ -58,9 +57,18 @@ async function fillUserForm(
     .locator('input');
 
   await usernameField.fill(username);
-
   await page.locator('input[type="password"]').nth(0).fill(password);
   await page.locator('input[type="password"]').nth(1).fill(password);
+}
+
+async function searchUser(page: Page, username: string) {
+  const usernameField = page
+    .locator('.oxd-input-group')
+    .filter({ hasText: 'Username' })
+    .locator('input');
+
+  await usernameField.fill(username);
+  await page.getByRole('button', { name: 'Search' }).click();
 }
 
 function uniqueUsername() {
@@ -75,17 +83,17 @@ test('Login and navigate to Admin module', async ({ page }) => {
 test('Add a new user', async ({ page }) => {
   await login(page);
   await openAdmin(page);
-
   await page.getByRole('button', { name: /Add/ }).click();
 
   const username = uniqueUsername();
   await fillUserForm(page, username, TEST_PASSWORD);
-
   await page.getByRole('button', { name: 'Save' }).click();
 
   await expect(
     page.getByRole('heading', { name: 'System Users' }),
   ).toBeVisible({ timeout: 10000 });
+
+  await searchUser(page, username);
 
   await expect(
     page.getByRole('cell', { name: username, exact: true }),
@@ -95,7 +103,6 @@ test('Add a new user', async ({ page }) => {
 test('Add user - required fields validation', async ({ page }) => {
   await login(page);
   await openAdmin(page);
-
   await page.getByRole('button', { name: /Add/ }).click();
   await page.getByRole('button', { name: 'Save' }).click();
 
@@ -104,19 +111,16 @@ test('Add user - required fields validation', async ({ page }) => {
   ).toBeVisible();
 });
 
-
 test('Add user - duplicate username validation', async ({ page }) => {
   await login(page);
   await openAdmin(page);
 
   const username = uniqueUsername();
 
-  // Create the first user.
   await page.getByRole('button', { name: /Add/ }).click();
   await fillUserForm(page, username, TEST_PASSWORD);
   await page.getByRole('button', { name: 'Save' }).click();
 
-  // Verify the first user was created.
   await expect(
     page.getByRole('heading', { name: 'System Users' }),
   ).toBeVisible({ timeout: 10000 });
@@ -125,14 +129,80 @@ test('Add user - duplicate username validation', async ({ page }) => {
     page.getByRole('cell', { name: username, exact: true }),
   ).toBeVisible({ timeout: 10000 });
 
-  // Attempt to create another user with the same username.
   await page.getByRole('button', { name: /Add/ }).click();
   await fillUserForm(page, username, TEST_PASSWORD);
   await page.getByRole('button', { name: 'Save' }).click();
 
-  // The application should reject the duplicate username.
   await expect(
     page.getByText('Already exists', { exact: true }),
   ).toBeVisible({ timeout: 10000 });
 });
 
+test('User management - search, edit, verify and delete user', async ({ page }) => {
+  await login(page);
+  await openAdmin(page);
+
+  const username = uniqueUsername();
+
+  // Create a test user.
+  await page.getByRole('button', { name: /Add/ }).click();
+  await fillUserForm(page, username, TEST_PASSWORD);
+  await page.getByRole('button', { name: 'Save' }).click();
+
+  await expect(
+    page.getByRole('heading', { name: 'System Users' }),
+  ).toBeVisible({ timeout: 10000 });
+
+  // Search for the new user.
+  await searchUser(page, username);
+
+  const userRow = page.getByRole('row').filter({ hasText: username });
+  await expect(userRow).toBeVisible({ timeout: 10000 });
+
+  // Open Edit for this user (the second action button in the row).
+  await userRow.getByRole('button').last().click();
+
+  // Confirm the Edit User form is open.
+  await expect(
+    page.getByPlaceholder('Type for hints...'),
+  ).toBeVisible();
+
+  // Change the user's status and save.
+  await selectOption(page, 1, 'Disabled');
+  await page.getByRole('button', { name: 'Save' }).click();
+
+  await expect(
+    page.getByRole('heading', { name: 'System Users' }),
+  ).toBeVisible({ timeout: 10000 });
+
+  // Verify that the updated status was saved.
+  await searchUser(page, username);
+
+  const updatedRow = page.getByRole('row').filter({ hasText: username });
+  await expect(updatedRow).toBeVisible({ timeout: 10000 });
+  await expect(updatedRow).toContainText('Disabled');
+
+  // Reopen Admin to ensure we are on the user list before deleting.
+  await openAdmin(page);
+  await searchUser(page, username);
+
+  const deleteRow = page.getByRole('row').filter({ hasText: username });
+  await expect(deleteRow).toBeVisible({ timeout: 10000 });
+
+  // Click the first action button, which is Delete in OrangeHRM.
+  await deleteRow.getByRole('button').first().click();
+
+  const deleteDialog = page.getByRole('dialog');
+  await expect(deleteDialog).toBeVisible();
+  await deleteDialog.getByRole('button', { name: /Yes, Delete/i }).click();
+
+  await expect(
+    page.getByText('Successfully Deleted', { exact: false }),
+  ).toBeVisible({ timeout: 10000 });
+
+  // Verify that the deleted user no longer appears.
+  await searchUser(page, username);
+  await expect(
+    page.getByRole('row').filter({ hasText: username }),
+  ).toHaveCount(0);
+});
