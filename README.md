@@ -14,22 +14,23 @@ The automated tests cover:
 2. Creating a new user with valid data.
 3. Required-field validation.
 4. Duplicate username validation.
+5. Searching for a user, editing their status, validating the update, and deleting the user.
 
 Manual test cases are documented in `test-cases/manual-test-cases.md`.
 
 ## Technology Stack
 
-* Ubuntu Linux
-* Node.js and npm
-* Playwright
-* TypeScript test syntax
-* Chromium
+- Ubuntu Linux
+- Node.js and npm
+- Playwright
+- TypeScript test syntax
+- Chromium
 
 ## Prerequisites
 
-* Node.js and npm installed.
-* Git installed.
-* Internet access to the OrangeHRM demo application.
+- Node.js and npm installed.
+- Git installed.
+- Internet access to the OrangeHRM demo application.
 
 ## Installation
 
@@ -37,36 +38,29 @@ Clone the repository and install dependencies:
 
 ```bash
 git clone https://github.com/bawar17/AccuKnox-user-management-tests.git
+cd AccuKnox-user-management-tests
 npm install
 npx playwright install chromium
 ```
-
-Replace `<YOUR_GITHUB_REPOSITORY_URL>` with the repository URL after publishing the project.
 
 ## Run Tests
 
 Run all tests:
 
 ```bash
-npx playwright test tests/user-management.spec.ts --project=chromium
+npm test
 ```
 
 Run tests sequentially:
 
 ```bash
-npx playwright test tests/user-management.spec.ts --project=chromium --workers=1
+npm run test:serial
 ```
 
 Run tests with a visible browser:
 
 ```bash
-npx playwright test tests/user-management.spec.ts --project=chromium --headed
-```
-
-Run a specific test:
-
-```bash
-npx playwright test tests/user-management.spec.ts --project=chromium -g "Add a new user"
+npm run test:headed
 ```
 
 ## Test Reports
@@ -74,12 +68,12 @@ npx playwright test tests/user-management.spec.ts --project=chromium -g "Add a n
 Open the HTML report:
 
 ```bash
-npx playwright show-report
+npm run report
 ```
 
 ## Test Data
 
-The tests use the public OrangeHRM demo environment. The `Orange Test` employee must exist for the user creation and duplicate username scenarios.
+The tests use the public OrangeHRM demo environment. The `Orange Test` employee must exist for user creation and duplicate username scenarios.
 
 The user creation test generates a timestamp-based username to reduce conflicts between test runs.
 
